@@ -17,8 +17,10 @@ Phase 1 (CLAUDE.md section 7) is done:
       — 98.4% transaction accuracy vs. `data/ground_truth.csv`, 100% on the required
       `clean_match` + `fee_tds_deduction` gate (see `reports/phase1_layer1_2_validation.md`)
 - [x] Layer 3-4: AI-assisted fuzzy matching + exception classification (Gemini API,
-      schema-constrained structured output) — logic verified by mocked-LLM tests
-      and live end-to-end runs
+      schema-constrained structured output) — **100% full-pipeline transaction
+      accuracy on a live run** against real Gemini calls (see
+      `reports/full_pipeline_validation.md`), plus mocked-LLM tests for logic
+      correctness independent of API availability
 - [x] Audit trail (per-record CSV + CLI report, one line per record with which layer
       resolved it, confidence, and a plain-language reason)
 - [x] Deliberate failure handling: malformed records → flagged for manual review, not
@@ -70,6 +72,20 @@ python scripts/validate_against_ground_truth.py
 ```bash
 python scripts/run_pipeline.py
 ```
+
+Needs `GEMINI_API_KEY`. The free tier caps this model at 5 requests/minute,
+so a full run takes a few minutes (paced deliberately — see
+`src/reconciliation/ai_client.py`), not because anything is stuck.
+
+## Validate the full pipeline against ground truth
+
+```bash
+python scripts/validate_full_pipeline.py
+```
+
+Run `run_pipeline.py` first. Scores full-pipeline correctness (a reference-
+format mismatch is right whether Layer 3 resolved it or correctly deferred
+it) rather than the exact Layer-1-2-only label `validate_against_ground_truth.py` checks.
 
 ## Run tests
 
