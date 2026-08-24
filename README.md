@@ -10,12 +10,23 @@ used only where deterministic logic genuinely can't do the job — see
 
 ## Status
 
+Phase 1 (CLAUDE.md section 7) is done:
+
 - [x] Synthetic data generator (`data/generate_data.py`)
 - [x] Layer 1-2: deterministic exact-key join + arithmetic (fee/TDS/rounding) reconciliation
-- [ ] Layer 3-4: AI-assisted fuzzy matching + exception classification
-- [ ] Audit trail viewer
-- [ ] Deliberate failure-handling demo
-- [ ] React dashboard
+      — 98.4% transaction accuracy vs. `data/ground_truth.csv`, 100% on the required
+      `clean_match` + `fee_tds_deduction` gate (see `reports/phase1_layer1_2_validation.md`)
+- [x] Layer 3-4: AI-assisted fuzzy matching + exception classification (Claude API,
+      structured tool-calling) — logic verified by mocked-LLM tests; live end-to-end
+      numbers pending a working `ANTHROPIC_API_KEY`
+- [x] Audit trail (per-record CSV + CLI report, one line per record with which layer
+      resolved it, confidence, and a plain-language reason)
+- [x] Deliberate failure handling: malformed records → flagged for manual review, not
+      dropped/crashed on; a Layer 3/4 LLM error or timeout falls back to the next layer
+      instead of hanging or guessing (`tests/test_failure_handling.py`)
+
+Phase 2 (not started): React dashboard, re-running against fresh seeds, threshold
+tuning, architecture diagram, demo recording.
 
 ## Setup
 
@@ -24,20 +35,35 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Layer 3-4 need `ANTHROPIC_API_KEY` set in the environment (or copy `.env.example`
+to `.env` and fill it in).
+
 ## Regenerate the synthetic dataset
 
 ```bash
 cd data && python generate_data.py --seed 42
 ```
 
-## Run the Layer 1-2 matching engine
+## Run the Layer 1-2 matching engine only
 
 ```bash
 python scripts/run_matching_engine.py
 ```
 
-## Validate against ground truth
+## Validate Layer 1-2 against ground truth
 
 ```bash
 python scripts/validate_against_ground_truth.py
+```
+
+## Run the full Layer 1-4 pipeline
+
+```bash
+python scripts/run_pipeline.py
+```
+
+## Run tests
+
+```bash
+pytest
 ```
