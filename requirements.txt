@@ -1,0 +1,15 @@
+# --- Phase 1: Layers 1-2 (deterministic + arithmetic matching) ---
+pandas>=2.2
+numpy>=1.26
+
+# --- Phase 1: Layers 3-4 (AI-assisted fuzzy matching + exception classification) ---
+anthropic>=0.34
+python-dotenv>=1.0
+rapidfuzz>=3.9
+
+# --- Backend API (Phase 2 dashboard) ---
+fastapi>=0.111
+uvicorn[standard]>=0.30
+
+# --- Testing ---
+pytest>=8.0
