@@ -23,6 +23,7 @@ PENDING_SETTLEMENT_WINDOW_DAYS = 3
 # honestly cannot and must defer to Layer 3/4). ---
 MATCHED_LAYER1_2 = "matched_layer1_2"
 MATCHED_EXTENDED_WINDOW = "matched_extended_window"
+MATCHED_LAYER3 = "matched_layer3"
 EXCEPTION_FEE_MISMATCH = "exception_fee_mismatch"
 EXCEPTION_REFUND_MISMATCH = "exception_refund_mismatch"
 EXCEPTION_DUPLICATE = "exception_duplicate"
@@ -31,3 +32,16 @@ EXCEPTION_ROUNDING = "exception_rounding"
 TRUE_EXCEPTION_ORPHAN = "true_exception_orphan"
 EXCEPTION_NEEDS_FUZZY_MATCH = "exception_needs_fuzzy_match"  # Layer 3 candidate
 EXCEPTION_UNCLASSIFIED = "exception_unclassified"  # defensive fallback
+EXCEPTION_MANUAL_REVIEW = "exception_manual_review"  # malformed input or Layer 4 couldn't resolve
+
+MATCHED_CATEGORIES = {MATCHED_LAYER1_2, MATCHED_EXTENDED_WINDOW, MATCHED_LAYER3}
+
+# Categories Layer 1-3 already explained deterministically well enough that
+# spending an LLM call on them would be AI-for-everything, not AI-for-judgment.
+LAYER4_ELIGIBLE_CATEGORIES = {
+    EXCEPTION_FEE_MISMATCH,
+    EXCEPTION_REFUND_MISMATCH,
+    TRUE_EXCEPTION_ORPHAN,
+    EXCEPTION_NEEDS_FUZZY_MATCH,
+    EXCEPTION_UNCLASSIFIED,
+}
