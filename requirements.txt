@@ -3,7 +3,7 @@ pandas>=2.2
 numpy>=1.26
 
 # --- Phase 1: Layers 3-4 (AI-assisted fuzzy matching + exception classification) ---
-anthropic>=0.34
+google-genai>=1.47
 python-dotenv>=1.0
 
 # --- Backend API (Phase 2 dashboard) ---

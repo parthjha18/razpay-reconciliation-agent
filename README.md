@@ -16,9 +16,9 @@ Phase 1 (CLAUDE.md section 7) is done:
 - [x] Layer 1-2: deterministic exact-key join + arithmetic (fee/TDS/rounding) reconciliation
       — 98.4% transaction accuracy vs. `data/ground_truth.csv`, 100% on the required
       `clean_match` + `fee_tds_deduction` gate (see `reports/phase1_layer1_2_validation.md`)
-- [x] Layer 3-4: AI-assisted fuzzy matching + exception classification (Claude API,
-      structured tool-calling) — logic verified by mocked-LLM tests; live end-to-end
-      numbers pending a working `ANTHROPIC_API_KEY`
+- [x] Layer 3-4: AI-assisted fuzzy matching + exception classification (Gemini API,
+      schema-constrained structured output) — logic verified by mocked-LLM tests
+      and live end-to-end runs
 - [x] Audit trail (per-record CSV + CLI report, one line per record with which layer
       resolved it, confidence, and a plain-language reason)
 - [x] Deliberate failure handling: malformed records → flagged for manual review, not
@@ -35,7 +35,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Layer 3-4 need `ANTHROPIC_API_KEY` set in the environment (or copy `.env.example`
+Layer 3-4 need `GEMINI_API_KEY` set in the environment (or copy `.env.example`
 to `.env` and fill it in).
 
 ## Regenerate the synthetic dataset
