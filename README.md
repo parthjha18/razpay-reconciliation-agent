@@ -25,8 +25,17 @@ Phase 1 (CLAUDE.md section 7) is done:
       dropped/crashed on; a Layer 3/4 LLM error or timeout falls back to the next layer
       instead of hanging or guessing (`tests/test_failure_handling.py`)
 
-Phase 2 (not started): React dashboard, re-running against fresh seeds, threshold
-tuning, architecture diagram, demo recording.
+Phase 2 (in progress):
+
+- [x] React (Vite) dashboard + FastAPI backend — Summary, Sources, Exceptions
+      (grouped by category), and a filterable Audit Trail, with on-demand reruns
+- [x] Re-ran Layer 1-2 against two fresh, previously-unseen seeds (`--seed 7`,
+      `--seed 99`): 98.4% and 96.8% overall, 100% on the gate both times — same
+      single known edge case both runs, not a new failure mode on fresh data
+- [x] Architecture diagram (`docs/architecture.md`) and 5-minute pitch script
+      (`docs/pitch_script.md`)
+- [ ] Confidence threshold / tolerance-band tuning based on what actually misfires
+- [ ] Demo recording
 
 ## Setup
 
@@ -67,3 +76,17 @@ python scripts/run_pipeline.py
 ```bash
 pytest
 ```
+
+## Run the dashboard (backend + frontend)
+
+```bash
+# Terminal 1 -- backend (serves data/ and output/, exposes rerun endpoints)
+uvicorn backend.main:app --port 8000
+
+# Terminal 2 -- frontend
+cd frontend && npm install && npm run dev
+```
+
+Open the URL Vite prints (usually http://localhost:5173). The dashboard reads
+whichever audit trail CSV was generated most recently in `output/` — run one
+of the scripts above first, or use the "Re-run" buttons in the Summary tab.
