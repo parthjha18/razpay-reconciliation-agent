@@ -22,15 +22,52 @@ def load_sources(data_dir: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFram
     settlement = pd.read_csv(f"{data_dir}/bank_settlement_file.csv")
     ledger = pd.read_csv(f"{data_dir}/merchant_ledger.csv")
 
-    gateway["captured_at"] = pd.to_datetime(gateway["captured_at"])
-    settlement["settlement_date"] = pd.to_datetime(settlement["settlement_date"])
-    ledger["recorded_date"] = pd.to_datetime(ledger["recorded_date"])
+    # errors="coerce" turns an unparseable date/amount into NaN/NaT instead of raising
+    # and killing the whole load -- malformed rows are caught and routed to manual
+    # review downstream (see _validate_rows), not allowed to crash the pipeline.
+    gateway["captured_at"] = pd.to_datetime(gateway["captured_at"], errors="coerce")
+    settlement["settlement_date"] = pd.to_datetime(settlement["settlement_date"], errors="coerce")
+    ledger["recorded_date"] = pd.to_datetime(ledger["recorded_date"], errors="coerce")
+
+    for col in ("amount", "gateway_fee", "tax"):
+        gateway[col] = pd.to_numeric(gateway[col], errors="coerce")
+    settlement["settlement_amount"] = pd.to_numeric(settlement["settlement_amount"], errors="coerce")
+    ledger["recorded_amount"] = pd.to_numeric(ledger["recorded_amount"], errors="coerce")
 
     # utr is an all-digit string; pandas silently infers int64 for it (every row is
     # populated, unlike the id columns which mix in blanks and stay object/str). Force
     # it back to str so it joins/compares correctly against string keys elsewhere.
     settlement["utr"] = settlement["utr"].astype(str)
     return gateway, settlement, ledger
+
+
+def _validate_rows(df: pd.DataFrame, *, id_columns: list[str], amount_column: str,
+                    date_column: str, record_type: str,
+                    key_mapping: dict[str, str]) -> tuple[pd.DataFrame, list[dict]]:
+    """Split df into (valid rows, manual-review audit rows) instead of crashing on
+    a missing/malformed field -- CLAUDE.md section 5's required graceful-degradation
+    scenario. key_mapping maps this source's id columns to the shared audit-row
+    kwargs (order_id/payment_id/utr/invoice_id)."""
+    valid_mask = pd.Series(True, index=df.index)
+    for col in id_columns:
+        valid_mask &= df[col].notna() & (df[col].astype(str).str.strip() != "")
+    valid_mask &= df[amount_column].notna() & (df[amount_column] > 0)
+    valid_mask &= df[date_column].notna()
+
+    manual_review_rows = []
+    for _, row in df[~valid_mask].iterrows():
+        fields = ", ".join(f"{col}={row[col]!r}" for col in [*id_columns, amount_column, date_column])
+        kwargs = {
+            audit_key: str(row[col]) for col, audit_key in key_mapping.items()
+            if pd.notna(row[col]) and str(row[col]).strip()
+        }
+        manual_review_rows.append(_audit_row(
+            record_type, c.EXCEPTION_MANUAL_REVIEW, 1,
+            f"Malformed record -- missing or invalid required field(s): {fields}. Flagged for "
+            "manual review rather than silently dropped or crashed on.",
+            **kwargs,
+        ))
+    return df[valid_mask].copy(), manual_review_rows
 
 
 def _as_of_date(gateway: pd.DataFrame, settlement: pd.DataFrame, ledger: pd.DataFrame) -> pd.Timestamp:
@@ -120,8 +157,26 @@ def _classify_settlement(gw_row, settlement_match) -> tuple[str, str, int]:
 
 
 def run_layer_1_2(gateway: pd.DataFrame, settlement: pd.DataFrame, ledger: pd.DataFrame) -> pd.DataFrame:
-    as_of = _as_of_date(gateway, settlement, ledger)
     audit_rows: list[dict] = []
+
+    gateway, gw_manual_review = _validate_rows(
+        gateway, id_columns=["order_id", "payment_id"], amount_column="amount",
+        date_column="captured_at", record_type="gateway_payment",
+        key_mapping={"order_id": "order_id", "payment_id": "payment_id"},
+    )
+    settlement, settle_manual_review = _validate_rows(
+        settlement, id_columns=["utr", "payment_id_ref"], amount_column="settlement_amount",
+        date_column="settlement_date", record_type="settlement_orphan",
+        key_mapping={"utr": "utr", "payment_id_ref": "payment_id"},
+    )
+    ledger, ledger_manual_review = _validate_rows(
+        ledger, id_columns=["invoice_id", "reference_id"], amount_column="recorded_amount",
+        date_column="recorded_date", record_type="ledger_orphan",
+        key_mapping={"invoice_id": "invoice_id", "reference_id": "payment_id"},
+    )
+    audit_rows.extend(gw_manual_review + settle_manual_review + ledger_manual_review)
+
+    as_of = _as_of_date(gateway, settlement, ledger)
 
     # --- Failed payments never entered reconciliation. ---
     failed = gateway[gateway["status"] == "failed"]
