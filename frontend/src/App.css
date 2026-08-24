@@ -1,0 +1,301 @@
+.app {
+  text-align: left;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+header h1 {
+  font-size: 28px;
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.error {
+  color: #d64545;
+}
+
+.banner-error {
+  background: rgba(214, 69, 69, 0.1);
+  border: 1px solid rgba(214, 69, 69, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+/* --- Summary panel --- */
+
+.summary-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--code-bg);
+}
+
+.card-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.card-label {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.card-good .card-value {
+  color: #2f9e44;
+}
+
+.card-warn .card-value {
+  color: #e8590c;
+}
+
+.category-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.chip-good {
+  background: rgba(47, 158, 68, 0.1);
+  border-color: rgba(47, 158, 68, 0.3);
+}
+
+.chip-warn {
+  background: rgba(232, 89, 12, 0.1);
+  border-color: rgba(232, 89, 12, 0.3);
+}
+
+.rerun-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rerun-actions button {
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.rerun-actions button.primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.rerun-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rerun-status {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.source-note {
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* --- Tabs --- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs button {
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs button.active {
+  color: var(--text-h);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+main {
+  min-height: 300px;
+}
+
+.summary-hint {
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* --- Tables --- */
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.audit-table th,
+.audit-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.audit-table .reason-cell {
+  white-space: normal;
+  min-width: 320px;
+  color: var(--text);
+}
+
+.audit-table .key-cell {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.filters select {
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.tag-good {
+  background: rgba(47, 158, 68, 0.15);
+  color: #2f9e44;
+}
+
+.tag-warn {
+  background: rgba(232, 89, 12, 0.15);
+  color: #e8590c;
+}
+
+/* --- Exception list --- */
+
+.exception-list details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+}
+
+.exception-list summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.count-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 400;
+  background: var(--code-bg);
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 6px;
+}
+
+.exception-list ul {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exception-list li {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.exception-key {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.confidence-badge {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--text);
+  margin-left: 8px;
+}
+
+.exception-reason {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+/* --- Sources view --- */
+
+.sources-view {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.source-table-wrapper h3 {
+  font-size: 16px;
+  color: var(--text-h);
+  margin: 0 0 8px;
+}

@@ -16,6 +16,7 @@ method some AI-generated doc summaries claimed exists -- there is no
 """
 from __future__ import annotations
 
+import collections
 import json
 import os
 import re
@@ -39,8 +40,18 @@ DEFAULT_TIMEOUT_SECONDS = float(os.environ.get("GEMINI_TIMEOUT_SECONDS", "20"))
 # Anything else (400 bad request, 401 auth, a malformed response) is not retried;
 # retrying those would just burn time before falling back the same way anyway.
 RETRYABLE_STATUS_CODES = {429, 503, 504}
-MAX_RETRIES = 3
+MAX_RETRIES = 2
 DEFAULT_RETRY_BACKOFF_SECONDS = 15.0
+MAX_RETRY_BACKOFF_SECONDS = 20.0
+
+# Google AI Studio's free tier caps this model at 5 requests/minute *regardless*
+# of retries -- reactively backing off after a 429 just re-hits the same wall,
+# since 20+ Layer 3/4 calls can never all clear a 5/min quota faster than
+# ceil(20/5) = 4 minutes no matter how the retries are timed. Pacing calls to
+# stay under the cap up front means most of them succeed on the first try
+# instead of bursting into a 429 and only then backing off.
+FREE_TIER_REQUESTS_PER_MINUTE = int(os.environ.get("GEMINI_REQUESTS_PER_MINUTE", "5"))
+_recent_call_times: collections.deque[float] = collections.deque(maxlen=FREE_TIER_REQUESTS_PER_MINUTE)
 
 _client: genai.Client | None = None
 
@@ -68,8 +79,19 @@ def _retry_delay_seconds(exc: genai_errors.APIError) -> float:
         if str(item.get("@type", "")).endswith("RetryInfo"):
             match = re.match(r"([\d.]+)s", str(item.get("retryDelay", "")))
             if match:
-                return float(match.group(1)) + 1.0  # small buffer past what the API asked for
+                return min(float(match.group(1)) + 1.0, MAX_RETRY_BACKOFF_SECONDS)
     return DEFAULT_RETRY_BACKOFF_SECONDS
+
+
+def _wait_for_rate_limit_slot() -> None:
+    """Block until making another call would keep us at/under the requests-
+    per-minute cap, instead of firing immediately and reacting to the 429."""
+    now = time.monotonic()
+    if len(_recent_call_times) == _recent_call_times.maxlen:
+        elapsed_since_oldest = now - _recent_call_times[0]
+        if elapsed_since_oldest < 60:
+            time.sleep(60 - elapsed_since_oldest)
+    _recent_call_times.append(time.monotonic())
 
 
 def call_tool(
@@ -85,6 +107,7 @@ def call_tool(
     """
     response = None
     for attempt in range(MAX_RETRIES + 1):
+        _wait_for_rate_limit_slot()
         try:
             response = get_client().models.generate_content(
                 model=model,
