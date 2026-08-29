@@ -17,6 +17,7 @@ import pandas as pd
 
 from . import constants as c
 from .ai_client import LLMCallFailed, call_tool
+from .heuristic_fuzzy import heuristic_match
 
 CONFIDENCE_THRESHOLD = 0.75
 
@@ -97,17 +98,29 @@ def run_layer_3(audit: pd.DataFrame, gateway: pd.DataFrame, ledger: pd.DataFrame
         gw_idx, payment_id = matches[0]
         gw_data = gw_by_payment_id.loc[payment_id]
 
+        is_heuristic = False
         try:
             result = _propose(
                 l_data["reference_id"], invoice_id, l_data["recorded_amount"], l_data["recorded_date"].date(),
                 payment_id, gw_data["amount"], gw_data["captured_at"],
             )
         except LLMCallFailed as exc:
-            note = f" [Layer 3 LLM call failed ({exc}); deferred to Layer 4 without guessing.]"
-            audit.loc[l_idx, "reason"] += note
-            audit.loc[gw_idx, "reason"] += note
-            continue
+            result = heuristic_match(l_data["reference_id"], payment_id)
+            is_heuristic = True
+            if result["is_match"]:
+                for i in [l_idx, gw_idx]:
+                    audit.loc[i, "reason"] += (
+                        f" [Layer 3: Gemini unavailable ({exc}); heuristic fallback matched at "
+                        f"confidence {result['confidence']:.2f}.]"
+                    )
+            else:
+                for i in [l_idx, gw_idx]:
+                    audit.loc[i, "reason"] += (
+                        f" [Layer 3: Gemini unavailable ({exc}); heuristic confidence "
+                        f"{result['confidence']:.2f} insufficient -- deferred to Layer 4.]"
+                    )
 
+        source_label = "heuristic fallback" if is_heuristic else "AI"
         if result["is_match"] and result["confidence"] >= CONFIDENCE_THRESHOLD:
             rows_to_drop.extend([l_idx, gw_idx])
             new_rows.append({
@@ -120,13 +133,13 @@ def run_layer_3(audit: pd.DataFrame, gateway: pd.DataFrame, ledger: pd.DataFrame
                 "category": c.MATCHED_LAYER3,
                 "confidence": result["confidence"],
                 "reason": (
-                    f"Layer 3 AI match (confidence {result['confidence']:.2f}): {result['reason']} "
+                    f"Layer 3 {source_label} match (confidence {result['confidence']:.2f}): {result['reason']} "
                     f"Ledger reference '{l_data['reference_id']}' resolved to payment_id '{payment_id}'."
                 ),
             })
-        else:
+        elif not is_heuristic:
             note = (
-                f" [Layer 3: candidate '{payment_id}' reviewed, confidence "
+                f" [Layer 3: candidate '{payment_id}' reviewed by {source_label}, confidence "
                 f"{result['confidence']:.2f} below {CONFIDENCE_THRESHOLD} threshold "
                 f"({result['reason']}); deferred to Layer 4.]"
             )
