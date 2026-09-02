@@ -32,62 +32,119 @@ header h1 {
 .summary-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-.summary-cards {
+/* Hero row: donut + stat cards */
+.summary-hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.summary-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  flex: 1;
+  min-width: 220px;
 }
 
-.card {
+.stat-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
+  border-radius: 10px;
+  padding: 14px 16px;
   background: var(--code-bg);
 }
 
-.card-value {
-  font-size: 28px;
-  font-weight: 600;
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
   color: var(--text-h);
+  line-height: 1;
 }
 
-.card-label {
+.stat-value.stat-mono {
+  font-size: 22px;
+  font-family: var(--mono);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.stat-good .stat-value { color: #2f9e44; }
+.stat-warn .stat-value { color: #e8590c; }
+
+/* Section heading */
+.section-heading {
   font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Category horizontal bars */
+.cat-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.cat-bar-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 36px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.cat-bar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+
+.cat-bar-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.cat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  opacity: 0.85;
+}
+
+.cat-bar-count {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Legend */
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   color: var(--text);
 }
 
-.card-good .card-value {
-  color: #2f9e44;
-}
-
-.card-warn .card-value {
-  color: #e8590c;
-}
-
-.category-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip {
-  font-size: 13px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-}
-
-.chip-good {
-  background: rgba(47, 158, 68, 0.1);
-  border-color: rgba(47, 158, 68, 0.3);
-}
-
-.chip-warn {
-  background: rgba(232, 89, 12, 0.1);
-  border-color: rgba(232, 89, 12, 0.3);
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  opacity: 0.85;
 }
 
 .rerun-actions {

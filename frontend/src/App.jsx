@@ -42,13 +42,6 @@ function App() {
 
       {error && <p className="error banner-error">{error}</p>}
 
-      <SummaryPanel
-        summary={summary}
-        rerunning={rerunning}
-        onRerunLayer12={() => handleRerun(api.rerunLayer12)}
-        onRerunFull={() => handleRerun(api.rerunFull)}
-      />
-
       <nav className="tabs">
         {TABS.map((t) => (
           <button key={t} className={t === tab ? "active" : ""} onClick={() => setTab(t)}>
@@ -58,11 +51,13 @@ function App() {
       </nav>
 
       <main>
-        {tab === "Summary" && summary && (
-          <p className="summary-hint">
-            Switch to <strong>Exceptions</strong> for the categorized, explained exception list, or{" "}
-            <strong>Audit Trail</strong> to filter every record by category, source, and layer.
-          </p>
+        {tab === "Summary" && (
+          <SummaryPanel
+            summary={summary}
+            rerunning={rerunning}
+            onRerunLayer12={() => handleRerun(api.rerunLayer12)}
+            onRerunFull={() => handleRerun(api.rerunFull)}
+          />
         )}
         {tab === "Sources" && <SourcesView />}
         {tab === "Exceptions" && <ExceptionList />}

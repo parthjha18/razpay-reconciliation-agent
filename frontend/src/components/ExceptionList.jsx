@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { categoryLabel } from "./SummaryPanel";
+import { categoryLabel, categoryColor } from "./SummaryPanel";
 
 const MATCHED_CATEGORIES = new Set(["matched_layer1_2", "matched_extended_window", "matched_layer3"]);
 
@@ -30,7 +30,8 @@ export default function ExceptionList() {
       {Object.entries(grouped).map(([category, categoryRows]) => (
         <details key={category} open>
           <summary>
-            {categoryLabel(category)} <span className="count-badge">{categoryRows.length}</span>
+            <span style={{ color: categoryColor(category) }}>{categoryLabel(category)}</span>
+            <span className="count-badge">{categoryRows.length}</span>
           </summary>
           <ul>
             {categoryRows.map((row, i) => (
