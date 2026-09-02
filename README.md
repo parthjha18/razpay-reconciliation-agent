@@ -93,6 +93,18 @@ it) rather than the exact Layer-1-2-only label `validate_against_ground_truth.py
 pytest
 ```
 
+## Benchmark Layer 1-2 throughput
+
+```bash
+python scripts/benchmark_layer1_2.py
+```
+
+Generates synthetic data in-memory at 100 / 1k / 10k / 100k rows and times
+the matching engine (best of 3 runs each). On this machine: **~0.2 ms per
+record** across all sizes. At 5,000 transactions/month (typical mid-market
+merchant), Layer 1-2 completes in ~1.2 s — vs. ~250 analyst-hours of manual
+cross-referencing at 3 min/record.
+
 ## Run the dashboard (backend + frontend)
 
 ```bash
